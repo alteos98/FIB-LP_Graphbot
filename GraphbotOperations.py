@@ -1,12 +1,13 @@
 import networkx as nx
 import pandas as pd
+from haversine import haversine
 from staticmap import StaticMap, CircleMarker
 
 # retorna un graf amb els nodes i arestes corresponents a la distància
 # i població donats
-def graph(g, distance, population):
+def graph(distance, population):
     # creació nou graf
-    G = nx.Graph()
+    g = nx.Graph()
 
     # obtenció de dades
     url = 'https://github.com/jordi-petit/lp-graphbot-2019/blob/master/dades/worldcitiespop.csv.gz?raw=true'
@@ -17,9 +18,9 @@ def graph(g, distance, population):
 
     # afegir nodes
     for x in range(len(df_population)):
-        G.add_node(x, country=df_population.iloc[x, 0], city=df_population.iloc[x, 1], population=df_population.iloc[x, 2], latitude=df_population.iloc[x, 3], longitude=df_population.iloc[x, 4])
+        g.add_node(x, country=df_population.iloc[x, 0], city=df_population.iloc[x, 1], population=df_population.iloc[x, 2], latitude=df_population.iloc[x, 3], longitude=df_population.iloc[x, 4])
 
-    return G
+    return g
 
 # retorna el número de nodes de g
 def nodes(g):
@@ -72,9 +73,10 @@ def route(g, src, dst):
 # retorna el mapa amb els nodes de <g> amb distància menor o igual que <dist> de <lat>,<lon> pintats
 def afegirCiutats(g, mapa, dist, lat, lon):
     for n in list(g.nodes):
-        latitude = g.nodes[n]['latitude']
-        longitude = g.nodes[n]['longitude']
-        population = g.nodes[n]['population']
-        mapa.add_marker(CircleMarker((latitude, longitude), 'red', population/(2*1000000)))
+        latitude_node = float(g.nodes[n]['latitude'])
+        longitude_node = float(g.nodes[n]['longitude'])
+        population_node = float(g.nodes[n]['population'])
+        if haversine((latitude_node, longitude_node), (float(lat), float(lon))) <= float(dist):
+            mapa.add_marker(CircleMarker((longitude_node, latitude_node), 'red', population_node/(2*100000)))
 
     return mapa
