@@ -1,13 +1,12 @@
 # imports
+import os
 import pandas as pd
-
 import networkx as nx
+import GraphbotOperations as gbOp
 
 import telegram
 from telegram.ext import Updater
 from telegram.ext import CommandHandler
-
-import GraphbotOperations as gbOp
 
 # /start
 def start(bot, update):
@@ -70,8 +69,12 @@ def components(bot, update):
 def plotpop(bot, update, args):
     try:
         print('plotpop')
-        # creació imatge del mapa
-        # enviament de la imatge al bot
+        # creació imatge del mapa i enviament al bot
+        image_file = '_plotpop.png'
+        image = gbOp.plotpop(G, args[0], args[1], args[2])
+        image.save(image_file)
+        bot.send_photo(chat_id = update.message.chat_id, photo = open(image_file, 'rb'))
+        os.remove(image_file)
     except IndexError:
         print('IndexError')
         bot.send_message(chat_id = update.message.chat_id, text = 'Usage: /plotpop <dist> [<lat> <lon>]')
@@ -86,8 +89,12 @@ def plotpop(bot, update, args):
 def plotgraph(bot, update, args):
     try:
         print('plotgraph')
-        # creació imatge del mapa
-        # enviament de la imatge al bot
+        # creació imatge del mapa i enviament al bot
+        image_file = '_plotgraph.png'
+        image = gbOp.plotgraph(G, args[0], args[1], args[2])
+        image.save(image_file)
+        bot.send_photo(chat_id = update.message.chat_id, photo = open(image_file, 'rb'))
+        os.remove(image_file)
     except IndexError:
         print('IndexError')
         bot.send_message(chat_id = update.message.chat_id, text = 'Usage: /plotgraph <dist> [<lat> <lon>]')
@@ -101,8 +108,12 @@ def plotgraph(bot, update, args):
 def route(bot, update, args):
     try:
         print('route')
-        # creació imatge del mapa
-        # enviament de la imatge al bot
+        # creació imatge del mapa i enviament al bot
+        image_file = '_route.png'
+        image = gbOp.route(G, args[0], args[1])
+        image.save(image_file)
+        bot.send_photo(chat_id = update.message.chat_id, photo = open(image_file, 'rb'))
+        os.remove(image_file)
     except IndexError:
         print('IndexError')
         bot.send_message(chat_id = update.message.chat_id, text = 'Usage: /route <src> <dst>')
