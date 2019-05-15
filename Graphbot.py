@@ -11,7 +11,14 @@ import MyExceptions
 # /start
 def start(bot, update, user_data):
     bot.send_message(chat_id = update.message.chat_id, text = 'Hello! Welcome to Graphbot v0.1')
-    bot.send_message(chat_id = update.message.chat_id, text = 'Wait until the initial graph is made. Thanks!')
+    bot.send_message(chat_id = update.message.chat_id, text = 'Starting to download the data...')
+    try:
+        user_data['data'] = gbOp.getData()
+    except Exception as e:
+        print(e)
+        bot.send_message(chat_id = update.message.chat_id, text = 'No response')
+    bot.send_message(chat_id = update.message.chat_id, text = 'Data downloaded successfully')
+    bot.send_message(chat_id = update.message.chat_id, text = 'Please, wait until the initial graph is made. Thanks!')
     graph(bot, update, [300, 100000], user_data)
 
 # /help
@@ -28,11 +35,21 @@ def author(bot, update):
 # args[1] = population
 def graph(bot, update, args, user_data):
     try:
-        user_data['graph'] = gbOp.graph(args[0], args[1])
-        bot.send_message(chat_id = update.message.chat_id, text = 'The graph has been updated')
+        gbOp.checkData(user_data)
+        if len(args) == 2:
+            user_data['graph'] = gbOp.graph(args[0], args[1], user_data['data'])
+            bot.send_message(chat_id = update.message.chat_id, text = 'The graph has been updated')
+        else:
+            raise IndexError()
+    except ValueError:
+        print('ValueError')
+        bot.send_message(chat_id = update.message.chat_id, text = 'Value error')
     except IndexError:
         print('IndexError')
         bot.send_message(chat_id = update.message.chat_id, text = 'Usage: /graph <distance> <population>')
+    except MyExceptions.NoGraphLoadedException as e:
+        print(e.text)
+        bot.send_message(chat_id = update.message.chat_id, text = e.text)
     except Exception as e:
         print(e)
         bot.send_message(chat_id = update.message.chat_id, text = 'No response')
@@ -40,8 +57,12 @@ def graph(bot, update, args, user_data):
 # /nodes
 def nodes(bot, update, user_data):
     try:
+        gbOp.checkUserData(user_data)
         n_nodes = gbOp.nodes(user_data['graph'])
         bot.send_message(chat_id = update.message.chat_id, text = n_nodes)
+    except MyExceptions.NoGraphLoadedException as e:
+        print(e.text)
+        bot.send_message(chat_id = update.message.chat_id, text = e.text)
     except Exception as e:
         print(e)
         bot.send_message(chat_id = update.message.chat_id, text = 'No response')
@@ -49,8 +70,12 @@ def nodes(bot, update, user_data):
 # /edges
 def edges(bot, update, user_data):
     try:
+        gbOp.checkUserData(user_data)
         n_edges = gbOp.edges(user_data['graph'])
         bot.send_message(chat_id = update.message.chat_id, text = n_edges)
+    except MyExceptions.NoGraphLoadedException as e:
+        print(e.text)
+        bot.send_message(chat_id = update.message.chat_id, text = e.text)
     except Exception as e:
         print(e)
         bot.send_message(chat_id = update.message.chat_id, text = 'No response')
@@ -58,8 +83,12 @@ def edges(bot, update, user_data):
 # /components
 def components(bot, update, user_data):
     try:
+        gbOp.checkUserData(user_data)
         n_components = gbOp.components(user_data['graph'])
         bot.send_message(chat_id = update.message.chat_id, text = n_components)
+    except MyExceptions.NoGraphLoadedException as e:
+        print(e.text)
+        bot.send_message(chat_id = update.message.chat_id, text = e.text)
     except Exception as e:
         print(e)
         bot.send_message(chat_id = update.message.chat_id, text = 'No response')
@@ -85,14 +114,18 @@ def plotpop(bot, update, args, user_data):
             lat, lon = args[1], args[2]
         else:
             raise IndexError()
+        gbOp.checkUserData(user_data)
         image = gbOp.plotpop(user_data['graph'], args[0], lat, lon)
         image.save(image_file)
         bot.send_photo(chat_id = update.message.chat_id, photo = open(image_file, 'rb'))
-        os.remove(image_file)        
+        os.remove(image_file)
+    except ValueError:
+        print('ValueError')
+        bot.send_message(chat_id = update.message.chat_id, text = 'Value error')
     except IndexError:
         print('IndexError')
         bot.send_message(chat_id = update.message.chat_id, text = 'Usage: /plotpop <dist> [<lat> <lon>]')
-    except MyExceptions.LocationException as e:
+    except (MyExceptions.LocationException, MyExceptions.MapRenderException, MyExceptions.NoGraphLoadedException) as e:
         print(e.text)
         bot.send_message(chat_id = update.message.chat_id, text = e.text)
     except Exception as e:
@@ -118,14 +151,18 @@ def plotgraph(bot, update, args, user_data):
             lat, lon = args[1], args[2]
         else:
             raise IndexError()
+        gbOp.checkUserData(user_data)
         image = gbOp.plotgraph(user_data['graph'], args[0], lat, lon)
         image.save(image_file)
         bot.send_photo(chat_id = update.message.chat_id, photo = open(image_file, 'rb'))
-        os.remove(image_file) 
+        os.remove(image_file)
+    except ValueError:
+        print('ValueError')
+        bot.send_message(chat_id = update.message.chat_id, text = 'Value error')
     except IndexError:
         print('IndexError')
         bot.send_message(chat_id = update.message.chat_id, text = 'Usage: /plotgraph <dist> [<lat> <lon>]')
-    except MyExceptions.LocationException as e:
+    except (MyExceptions.LocationException, MyExceptions.MapRenderException, MyExceptions.NoGraphLoadedException) as e:
         print(e.text)
         bot.send_message(chat_id = update.message.chat_id, text = e.text)
     except Exception as e:
@@ -140,13 +177,20 @@ def route(bot, update, args, user_data):
         print('route')
         # creació imatge del mapa i enviament al bot
         image_file = '_route.png'
+        gbOp.checkUserData(user_data)
         image = gbOp.route(user_data['graph'], args[0], args[1])
         image.save(image_file)
         bot.send_photo(chat_id = update.message.chat_id, photo = open(image_file, 'rb'))
         os.remove(image_file)
+    except ValueError:
+        print('ValueError')
+        bot.send_message(chat_id = update.message.chat_id, text = 'Value error')
     except IndexError:
         print('IndexError')
         bot.send_message(chat_id = update.message.chat_id, text = 'Usage: /route <src> <dst>')
+    except (MyExceptions.MapRenderException, MyExceptions.NoGraphLoadedException) as e:
+        print(e.text)
+        bot.send_message(chat_id = update.message.chat_id, text = e.text)
     except Exception as e:
         print(e)
         bot.send_message(chat_id = update.message.chat_id, text = 'No response')
