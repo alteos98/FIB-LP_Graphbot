@@ -2,6 +2,7 @@ import networkx as nx
 import pandas as pd
 from haversine import haversine
 from staticmap import StaticMap, CircleMarker, Line
+from fuzzywuzzy import fuzz, process
 
 import time
 import math
@@ -38,12 +39,16 @@ def graph(distance, population, data):
 
     # creació dels conjunts en funció de la latitud i distance
     km_per_grade_lat = 111.12
+    km_per_grade_lon = 111.32 # fer funció que calculi la lon transformada en funció de cada grau de lon
     n_grades_lat = 180.0
-    n_conjunts = math.ceil(n_grades_lat*km_per_grade_lat/float(distance))
-    conjunts_lat = [[] for i in repeat(None, n_conjunts)]
+    n_grades_lon = 360.0
+    n_conjunts_i = math.ceil(n_grades_lat*km_per_grade_lat/float(distance))
+    n_conjunts_j = math.ceil(n_grades_lon*km_per_grade_lon/float(distance))
+    conjunts_lat = [[[] for j in repeat(None, n_conjunts_j)] for i in repeat(None, n_conjunts_i)]
     for x in range(len(df_population)):
         i_conjunt = math.floor((df_population.iloc[x, 3] + 90)*km_per_grade_lat/float(distance)) # -90 <= x <= 90 ===> 0 <= x <= 180
-        conjunts_lat[i_conjunt].append(x)
+        j_conjunt = math.floor((df_population.iloc[x, 4] + 180)*km_per_grade_lon/float(distance))
+        conjunts_lat[i_conjunt][j_conjunt].append(x)
 
     # afegir nodes
     t_start = time.time()
@@ -53,6 +58,7 @@ def graph(distance, population, data):
     t_total = t_end - t_start
     print('Temps en afegir nodes: ', t_total)
 
+    '''
     #afegir arestes
     t_start = time.time()
     for i in range(len(conjunts_lat)-1):
@@ -74,6 +80,29 @@ def graph(distance, population, data):
                         if dist <= float(distance):
                             g.add_edge(x, y, weight=dist)
                             print('Added edge: ', x, ' ', y)
+    t_end = time.time()
+    t_total = t_end - t_start
+    print('Temps en afegir arestes: ', t_total)
+    '''
+
+    t_start = time.time()
+    for i in range(len(conjunts_lat)):
+        for j in range(len(conjunts_lat[i])):
+            for k in range(len(conjunts_lat[i][j])):
+                x = conjunts_lat[i][j][k]
+                for t in [i, i+1]:
+                    for l in [j, j+1]:
+                        if i == t and j == l:
+                            _p = k+1
+                        else:
+                            _p = 0
+                        if t < n_conjunts_i and l < n_conjunts_j:
+                            for p in range(_p, len(conjunts_lat[t][l])):
+                                y = conjunts_lat[t][l][p]
+                                dist = haversine((df_population.iloc[x, 3], df_population.iloc[x, 4]), (df_population.iloc[y, 3], df_population.iloc[y, 4]))
+                                if dist <= float(distance):
+                                    g.add_edge(x, y, weight=dist)
+                                    print('Added edge: ', x, ' ', y)
     t_end = time.time()
     t_total = t_end - t_start
     print('Temps en afegir arestes: ', t_total)
@@ -135,15 +164,35 @@ def route(g, src, dst):
     # crear mapa
     mapa = StaticMap(500, 500)
 
-    # trobar i pintar ruta
+    # trobar els dos nodes fent servir Levenshtein
+    src = src[1:-1]
+    dst = dst[1:-1]
+    cities_list = []
+    for i_city in list(g.nodes):
+        city = str(g.nodes[i_city]['city']) + ', ' + str(g.nodes[i_city]['country'])
+        cities_list.append(city)
+    src_city = process.extractOne(str(src), cities_list)[0].split(', ')
+    dst_city = process.extractOne(str(dst), cities_list)[0].split(', ')
+    i_src = 0
+    i_dst = 0
+    src_found = False
+    dst_found = False
+    for i_city in list(g.nodes):
+        if not src_found and g.nodes[i_city]['city'] == src_city[0] and g.nodes[i_city]['country'] == src_city[1]:
+            i_src = i_city
+            src_found = True
+        if not dst_found and g.nodes[i_city]['city'] == dst_city[0] and g.nodes[i_city]['country'] == dst_city[1]:
+            i_dst = i_city
+            dst_found = True
+
+    # BFS
 
     # crear imatge
     try:
         img = mapa.render()
+        return img
     except:
         raise MyExceptions.MapRenderException
-    
-    return img
 
 # retorna el graf amb l'atribut 'visible' de cada node ajustat segons convingui
 # un node és visible si es troba a menys o igual de 'dist' km de (lat, lon)
