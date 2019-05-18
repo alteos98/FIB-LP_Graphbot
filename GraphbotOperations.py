@@ -37,6 +37,14 @@ def graph(distance, population, data):
     # ordenar per latitud
     df_population.sort_values(by='Latitude', inplace=True, ascending=False)
 
+    # afegir nodes
+    t_start = time.time()
+    for x in range(len(df_population)):
+        g.add_node(x, country=df_population.iloc[x, 0], city=df_population.iloc[x, 1], population=df_population.iloc[x, 2], latitude=df_population.iloc[x, 3], longitude=df_population.iloc[x, 4], visible=True)
+    t_end = time.time()
+    t_total = t_end - t_start
+    print('Temps en afegir nodes: ', t_total)
+
     # creació dels conjunts en funció de la latitud i distance
     km_per_grade_lat = 111.12
     km_per_grade_lon = 111.32 # fer funció que calculi la lon transformada en funció de cada grau de lon
@@ -50,41 +58,7 @@ def graph(distance, population, data):
         j_conjunt = math.floor((df_population.iloc[x, 4] + 180)*km_per_grade_lon/float(distance))
         conjunts_lat[i_conjunt][j_conjunt].append(x)
 
-    # afegir nodes
-    t_start = time.time()
-    for x in range(len(df_population)):
-        g.add_node(x, country=df_population.iloc[x, 0], city=df_population.iloc[x, 1], population=df_population.iloc[x, 2], latitude=df_population.iloc[x, 3], longitude=df_population.iloc[x, 4], visible=True)
-    t_end = time.time()
-    t_total = t_end - t_start
-    print('Temps en afegir nodes: ', t_total)
-
-    '''
-    #afegir arestes
-    t_start = time.time()
-    for i in range(len(conjunts_lat)-1):
-        for j in range(len(conjunts_lat[i])):
-            for k in [i, i+1]:
-                if k == i:
-                    for t in range(j+1, len(conjunts_lat[k])):
-                        x = conjunts_lat[i][j]
-                        y = conjunts_lat[k][t]
-                        dist = haversine((df_population.iloc[x, 3], df_population.iloc[x, 4]), (df_population.iloc[y, 3], df_population.iloc[y, 4]))
-                        if dist <= float(distance):
-                            g.add_edge(x, y, weight=dist)
-                            print('Added edge: ', x, ' ', y)
-                else:
-                    for t in range(len(conjunts_lat[k])):
-                        x = conjunts_lat[i][j]
-                        y = conjunts_lat[k][t]
-                        dist = haversine((df_population.iloc[x, 3], df_population.iloc[x, 4]), (df_population.iloc[y, 3], df_population.iloc[y, 4]))
-                        if dist <= float(distance):
-                            g.add_edge(x, y, weight=dist)
-                            print('Added edge: ', x, ' ', y)
-    t_end = time.time()
-    t_total = t_end - t_start
-    print('Temps en afegir arestes: ', t_total)
-    '''
-
+    # afegir arestes
     t_start = time.time()
     for i in range(len(conjunts_lat)):
         for j in range(len(conjunts_lat[i])):
@@ -102,7 +76,7 @@ def graph(distance, population, data):
                                 dist = haversine((df_population.iloc[x, 3], df_population.iloc[x, 4]), (df_population.iloc[y, 3], df_population.iloc[y, 4]))
                                 if dist <= float(distance):
                                     g.add_edge(x, y, weight=dist)
-                                    print('Added edge: ', x, ' ', y)
+                                    #print('Added edge: ', x, ' ', y)
     t_end = time.time()
     t_total = t_end - t_start
     print('Temps en afegir arestes: ', t_total)
@@ -185,7 +159,15 @@ def route(g, src, dst):
             i_dst = i_city
             dst_found = True
 
-    # BFS
+    # dijkstra
+    try:
+        path = nx.dijkstra_path(g, i_src, i_dst, weight='weight')
+    except:
+        raise MyExceptions.NoPathFoundException
+    for i in range(len(path)):
+        if i+1 < len(path):
+            mapa.add_line(Line(((g.nodes[path[i]]['longitude'], g.nodes[path[i]]['latitude']), (g.nodes[path[i+1]]['longitude'], g.nodes[path[i+1]]['latitude'])), 'blue', 1))
+        mapa.add_marker(CircleMarker((g.nodes[path[i]]['longitude'], g.nodes[path[i]]['latitude']), 'red', 2))
 
     # crear imatge
     try:

@@ -9,3 +9,6 @@ class MapRenderException(MyExceptions):
 
 class NoGraphLoadedException(MyExceptions):
     text = 'There is no graph loaded or no data available, please use /start at first'
+
+class NoPathFoundException(MyExceptions):
+    text = 'No path was found between <src> and <dst>'

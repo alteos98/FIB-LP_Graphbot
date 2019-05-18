@@ -1,7 +1,4 @@
-# imports
 import os
-import pandas as pd
-import networkx as nx
 import telegram
 from telegram.ext import Updater, CommandHandler, Filters, MessageHandler
 
@@ -10,7 +7,7 @@ import MyExceptions
 
 # /start
 def start(bot, update, user_data):
-    bot.send_message(chat_id = update.message.chat_id, text = 'Hello! Welcome to Graphbot v0.1')
+    bot.send_message(chat_id = update.message.chat_id, text = 'Hello! Welcome to Graphbot v1.0')
     bot.send_message(chat_id = update.message.chat_id, text = 'Starting to download the data...')
     try:
         user_data['data'] = gbOp.getData()
@@ -18,12 +15,22 @@ def start(bot, update, user_data):
         print(e)
         bot.send_message(chat_id = update.message.chat_id, text = 'No response')
     bot.send_message(chat_id = update.message.chat_id, text = 'Data downloaded successfully')
-    bot.send_message(chat_id = update.message.chat_id, text = 'Please, wait until the initial graph is made. Thanks!')
     graph(bot, update, [300, 100000], user_data)
 
 # /help
 def help(bot, update):
-    missatge = '/start\n' + '/help\n' + '/author\n' + '/graph <distance> <population>\n' + '/nodes\n' + '/edges\n' + '/components\n' + '/plotpop <dist> [<lat> <lon>]\n' + '/plotgraph <dist> [<lat> <lon>]\n' + '/route <src> <dst>'
+    missatge = '/start: starts the conversation with the bot, downloads the data and creates the initial graph\n'
+    missatge += '/help: shows this help panel\n'
+    missatge += '/author: shows who made this bot\n'
+    missatge += '/graph <distance> <population>: creates a graph with nodes representing cities with more or equal <population> and edges representing paths between two nodes that are closer than <distance>\n'
+    missatge += '/nodes: number of nodes of the graph\n'
+    missatge += '/edges: number of edges of the graph\n'
+    missatge += '/components: number of components of the graph\n'
+    missatge += '/plotpop <dist> [<lat> <lon>]: paints a map with all the nodes that are visible\n'
+    missatge += '/plotgraph <dist> [<lat> <lon>]: paints a map with all the nodes and edges that are visible\n'
+    missatge += '/route <src> <dst>: paints a map with the shortest route between <src> and <dst>. Example of usage: /route "Barcelona, es" "Paris, fr"\n'
+    missatge += '*The initial graph is: /graph 300 100000\n'
+    missatge += '*One node/edge is visible if it is inside the circle formed by <lat> <lon> as the center and <dist> as the radius'
     bot.send_message(chat_id = update.message.chat_id, text = missatge)
 
 # /author
@@ -37,6 +44,7 @@ def graph(bot, update, args, user_data):
     try:
         gbOp.checkData(user_data)
         if len(args) == 2:
+            bot.send_message(chat_id = update.message.chat_id, text = 'Please, wait until the graph is made. Thanks!')
             user_data['graph'] = gbOp.graph(args[0], args[1], user_data['data'])
             bot.send_message(chat_id = update.message.chat_id, text = 'The graph has been updated')
         else:
@@ -99,7 +107,6 @@ def components(bot, update, user_data):
 # args[2] = lon
 def plotpop(bot, update, args, user_data):
     try:
-        print('plotpop')
         # inicialitzacions
         lat, lon = 0, 0
         # creació imatge del mapa i enviament al bot
@@ -138,7 +145,6 @@ def plotpop(bot, update, args, user_data):
 # args[2] = lon
 def plotgraph(bot, update, args, user_data):
     try:
-        print('plotgraph')
         # creació imatge del mapa i enviament al bot
         image_file = '_plotgraph.png'
         if len(args) == 1:
@@ -174,11 +180,10 @@ def plotgraph(bot, update, args, user_data):
 # args[1] = dst
 def route(bot, update, args, user_data):
     try:
-        print('route')
         # creació imatge del mapa i enviament al bot
         image_file = '_route.png'
         gbOp.checkUserData(user_data)
-        image = gbOp.route(user_data['graph'], args[0], args[1])
+        image = gbOp.route(user_data['graph'], args[0] + ' ' + args[1], args[2] + ' ' + args[3])
         image.save(image_file)
         bot.send_photo(chat_id = update.message.chat_id, photo = open(image_file, 'rb'))
         os.remove(image_file)
@@ -187,8 +192,8 @@ def route(bot, update, args, user_data):
         bot.send_message(chat_id = update.message.chat_id, text = 'Value error')
     except IndexError:
         print('IndexError')
-        bot.send_message(chat_id = update.message.chat_id, text = 'Usage: /route <src> <dst>')
-    except (MyExceptions.MapRenderException, MyExceptions.NoGraphLoadedException) as e:
+        bot.send_message(chat_id = update.message.chat_id, text = 'Usage: /route <src> <dst>\n<src>/<dst> format: "<city>, <country code>"')
+    except (MyExceptions.MapRenderException, MyExceptions.NoGraphLoadedException, MyExceptions.NoPathFoundException) as e:
         print(e.text)
         bot.send_message(chat_id = update.message.chat_id, text = e.text)
     except Exception as e:
