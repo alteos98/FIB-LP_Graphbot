@@ -1,0 +1,7 @@
+## requirements ##
+telegram
+networkx
+pandas
+haversine
+staticmap
+fuzzywuzzy
