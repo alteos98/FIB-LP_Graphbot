@@ -1,10 +1,8 @@
 # Graphbot
 
-One Paragraph of project description goes here
+This is the Python project I made in LP (Programming Languages) subject. It consists in a Telegram bot with a set of funcionalities. Below you have all the things that you can do with it.
 
 ## Getting Started
-
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
 ### Prerequisites
 
@@ -14,74 +12,40 @@ To install the prerequisities, you only have to run:
 pip install -r requirements.txt
 ```
 
-### Installing
+### Running
 
-A step by step series of examples that tell you how to get a development env running
+To use the Graphbot you only have to follow these steps:
 
-Say what the step will be
-
-```
-Give the example
-```
-
-And repeat
+Run the Graphbot.py.
 
 ```
-until finished
+python Graphbot.py
 ```
 
-End with an example of getting some data out of the system or using it for a little demo
+Make sure you have a Telegram account and click this [link](https://telegram.me/aleta001_bot) to open the bot.
 
-## Running the tests
+Now you are ready to start using the bot.
 
-Explain how to run the automated tests for this system
+## How to use it?
 
-### Break down into end to end tests
+- /start: starts the conversation with the bot, downloads the data and creates the initial graph
+- /help: shows this help panel
+- /author: shows who made this bot
+- /graph \<distance> \<population>: creates a graph with nodes representing cities with more or equal \<population> and edges representing paths between two nodes that are closer than \<distance>
+- /nodes: number of nodes of the graph
+- /edges: number of edges of the graph
+- /components: number of components of the graph
+- /plotpop \<dist> \[\<lat> \<lon>]: paints a map with all the nodes that are visible
+- /plotgraph \<dist> \[\<lat> \<lon>]: paints a map with all the nodes and edges that are visible
+- /route \<src> \<dst>: paints a map with the shortest route between \<src> and \<dst>. Example of usage: /route "Barcelona, es" "Paris, fr"
 
-Explain what these tests test and why
+*The initial graph is: /graph 300 100000  
+*One node/edge is visible if it is inside the circle formed by \<lat> \<lon> as the center and \<dist> as the radius
 
-```
-Give an example
-```
+## Author
 
-### And coding style tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-## Deployment
-
-Add additional notes about how to deploy this on a live system
-
-## Built With
-
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
-
-## Contributing
-
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
-
-## Versioning
-
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
-
-## Authors
-
-* **Billie Thompson** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
-
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+* **Albert Teira Osuna** - [My Github](https://github.com/alteos98)
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
-
-## Acknowledgments
-
-* Hat tip to anyone whose code was used
-* Inspiration
-* etc
