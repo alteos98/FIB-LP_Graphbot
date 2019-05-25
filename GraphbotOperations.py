@@ -46,16 +46,16 @@ def graph(distance, population, data):
     print('Temps en afegir nodes: ', t_total)
 
     # creació dels conjunts en funció de la latitud i distance
-    km_per_grade_lat = 111.12
-    km_per_grade_lon = 111.32  # fer funció que calculi la lon transformada en funció de cada grau de lon
+    km_per_grade_lat_max = 111.12
+    km_per_grade_lon_max = 111.32  # fer funció que calculi la lon transformada en funció de cada grau de lon
     n_grades_lat = 180.0
     n_grades_lon = 360.0
-    n_conjunts_i = math.ceil(n_grades_lat*km_per_grade_lat/float(distance))
-    n_conjunts_j = math.ceil(n_grades_lon*km_per_grade_lon/float(distance))
+    n_conjunts_i = math.ceil(n_grades_lat*km_per_grade_lat_max/float(distance))
+    n_conjunts_j = math.ceil(n_grades_lon*km_per_grade_lon_max/float(distance))
     conjunts_lat = [[[] for j in repeat(None, n_conjunts_j)] for i in repeat(None, n_conjunts_i)]
     for x in range(len(df_population)):
-        i_conjunt = math.floor((df_population.iloc[x, 3] + 90)*km_per_grade_lat/float(distance))  # -90 <= x <= 90 ===> 0 <= x <= 180
-        j_conjunt = math.floor((df_population.iloc[x, 4] + 180)*km_per_grade_lon/float(distance))  # -180 <= x <= 180 ===> 0 <= x <= 360
+        i_conjunt = math.floor((df_population.iloc[x, 3] + 90)*km_per_grade_lat_max/float(distance))  # -90 <= x <= 90 ===> 0 <= x <= 180
+        j_conjunt = math.floor((df_population.iloc[x, 4] + 180)*km_per_grade_lon_max/float(distance))  # -180 <= x <= 180 ===> 0 <= x <= 360
         conjunts_lat[i_conjunt][j_conjunt].append(x)
 
     # afegir arestes
