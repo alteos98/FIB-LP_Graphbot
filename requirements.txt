@@ -5,3 +5,4 @@ pandas
 haversine
 staticmap
 fuzzywuzzy
+python-Levenshtein

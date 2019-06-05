@@ -33,9 +33,9 @@ def graph(distance, population, data):
     df = data
 
     # filtrar: quedar-nos amb les poblacions amb població >= population
-    df_population = df[df.Population >= population]
+    df_population_no_order = df[df.Population >= population]
     # ordenar per latitud
-    df_population.sort_values(by='Latitude', inplace=True, ascending=False)
+    df_population = df_population_no_order.sort_values(by='Latitude', inplace=False, ascending=False)
 
     # afegir nodes
     t_start = time.time()
@@ -64,6 +64,8 @@ def graph(distance, population, data):
         for j in range(len(conjunts_lat[i])):
             for k in range(len(conjunts_lat[i][j])):
                 x = conjunts_lat[i][j][k]
+                x_lat = df_population.iloc[x, 3]
+                x_lon = df_population.iloc[x, 4]
                 for t in [i, i+1]:
                     for l in [j, j+1]:
                         if i == t and j == l:
@@ -73,7 +75,7 @@ def graph(distance, population, data):
                         if t < n_conjunts_i and l < n_conjunts_j:
                             for p in range(_p, len(conjunts_lat[t][l])):
                                 y = conjunts_lat[t][l][p]
-                                dist = haversine((df_population.iloc[x, 3], df_population.iloc[x, 4]), (df_population.iloc[y, 3], df_population.iloc[y, 4]))
+                                dist = haversine((x_lat, x_lon), (df_population.iloc[y, 3], df_population.iloc[y, 4]))
                                 if dist <= float(distance):
                                     g.add_edge(x, y, weight=dist)
     t_end = time.time()
