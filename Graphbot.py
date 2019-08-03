@@ -218,7 +218,7 @@ def user_location(bot, update, user_data):
 
 # MAIN
 # declara una constant amb el access token que llegeix de token.txt
-TOKEN = '884103749:AAF0yuFKUnbJ9-sx1YtVH_l4LM0QMIy1FIY' # open('token.txt').read().strip()
+TOKEN = open('token.txt').read().strip()
 
 # crea objectes per treballar amb Telegram
 updater = Updater(token=TOKEN)
