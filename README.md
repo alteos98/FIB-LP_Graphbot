@@ -12,6 +12,8 @@ To install the prerequisities, you only have to run:
 pip install -r requirements.txt
 ```
 
+You also have to create a token for your bot and put it into **token.txt**.
+
 ### Running
 
 To use the Graphbot you only have to follow these steps:
